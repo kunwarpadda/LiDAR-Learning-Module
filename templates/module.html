@@ -1,0 +1,376 @@
+<div class="lidar-module" data-lidar-module>
+
+  <nav class="lidar-tabs" aria-label="Module sections">
+    <button class="lidar-tab is-active" type="button" data-panel-target="home" aria-selected="true">Home</button>
+    <button class="lidar-tab" type="button" data-panel-target="section-1" aria-selected="false">1. LiDAR or Camera?</button>
+    <button class="lidar-tab" type="button" data-panel-target="section-2" aria-selected="false">2. Measuring Distance</button>
+    <button class="lidar-tab" type="button" data-panel-target="section-3" aria-selected="false">3. Point Clouds</button>
+    <button class="lidar-tab" type="button" data-panel-target="section-4" aria-selected="false">4. Small Errors</button>
+    <button class="lidar-tab" type="button" data-panel-target="section-5" aria-selected="false">5. Case Study</button>
+    <button class="lidar-tab" type="button" data-panel-target="final" aria-selected="false">Final Task</button>
+  </nav>
+
+  <div class="lidar-progress" aria-label="Module progress">
+    <span class="lidar-progress__track">
+      <span class="lidar-progress__bar" data-progress-bar></span>
+    </span>
+    <span data-progress-label>Home</span>
+  </div>
+
+  <main class="lidar-panels">
+
+    <!-- Home -->
+    <section class="lidar-panel is-active" data-panel="home">
+      <header class="lidar-hero">
+        <div class="lidar-hero__copy">
+          <h1>How LiDAR Measures the World</h1>
+          <p class="lidar-hero__subtitle">From laser pulses to 3D maps</p>
+          <div class="lidar-meta" aria-label="Module details">
+            <span>1–2 hours</span>
+            <span>5 sections</span>
+            <span>Applied final task</span>
+          </div>
+          <div class="lidar-hero__actions">
+            <button class="lidar-button lidar-button--primary" type="button" data-open-panel="section-1">
+              Start Section 1
+            </button>
+            <button class="lidar-button lidar-button--secondary" type="button" data-scroll-target="module-flow">
+              View Module Flow
+            </button>
+          </div>
+        </div>
+        <div class="lidar-hero__visual" aria-label="Animated LiDAR pulses over terrain">
+          <canvas data-lidar-hero-canvas width="720" height="520"></canvas>
+        </div>
+      </header>
+
+      <div class="lidar-section-heading">
+        <p class="lidar-eyebrow">Module Overview</p>
+        <h2>Laser measurements become 3D maps when distance, position, and orientation work together.</h2>
+      </div>
+      <div class="lidar-overview-grid">
+        <article class="lidar-card">
+          <h3>What you will learn</h3>
+          <ol class="lidar-list">
+            <li>Explain what LiDAR is and how it differs from a regular camera.</li>
+            <li>Describe how time-of-flight can be used to estimate distance.</li>
+            <li>Identify how GNSS/GPS and IMU data place LiDAR measurements into a coordinate system.</li>
+            <li>Explain what a point cloud is and how it represents a real-world surface or object.</li>
+            <li>Identify possible sources of error in LiDAR data collection.</li>
+            <li>Explain why small errors can affect the accuracy of a final 3D map.</li>
+            <li>Apply your understanding to a real-world scenario where LiDAR accuracy matters.</li>
+          </ol>
+        </article>
+        <article class="lidar-card">
+          <h3>Essential questions</h3>
+          <ol class="lidar-list">
+            <li>How can a laser mounted on an aircraft measure the shape of the Earth?</li>
+            <li>How are millions of individual laser measurements transformed into a 3D point cloud?</li>
+            <li>Why can small measurement errors affect the reliability of a final 3D map?</li>
+          </ol>
+        </article>
+      </div>
+
+      <section class="lidar-flow" id="module-flow" aria-labelledby="module-flow-title">
+        <div class="lidar-section-heading">
+          <p class="lidar-eyebrow">Module Flow</p>
+          <h2 id="module-flow-title">Move from visual comparison to applied accuracy decisions.</h2>
+        </div>
+        <div class="lidar-flow__grid">
+          <button class="lidar-flow-card" type="button" data-open-panel="section-1">
+            <span class="lidar-flow-card__step">01</span>
+            <strong>LiDAR or Camera?</strong>
+            <span>Compare image-based viewing with distance-based measurement.</span>
+          </button>
+          <button class="lidar-flow-card" type="button" data-open-panel="section-2">
+            <span class="lidar-flow-card__step">02</span>
+            <strong>Measuring Distance with Light</strong>
+            <span>Use time-of-flight to estimate distance from travel time.</span>
+          </button>
+          <button class="lidar-flow-card" type="button" data-open-panel="section-3">
+            <span class="lidar-flow-card__step">03</span>
+            <strong>From Measurements to Point Clouds</strong>
+            <span>Place many measurements into a shared 3D coordinate system.</span>
+          </button>
+          <button class="lidar-flow-card" type="button" data-open-panel="section-4">
+            <span class="lidar-flow-card__step">04</span>
+            <strong>Why Small Errors Matter</strong>
+            <span>Compare accurate points with shifted points in a decision context.</span>
+          </button>
+          <button class="lidar-flow-card" type="button" data-open-panel="section-5">
+            <span class="lidar-flow-card__step">05</span>
+            <strong>Real-World LiDAR Case Study</strong>
+            <span>Choose an application and explain why accuracy matters.</span>
+          </button>
+          <button class="lidar-flow-card" type="button" data-open-panel="final">
+            <span class="lidar-flow-card__step">Final</span>
+            <strong>Applied Assessment</strong>
+            <span>Explain a flood-risk mapping scenario using the module concepts.</span>
+          </button>
+        </div>
+      </section>
+    </section>
+
+    <!-- Section 1 -->
+    <section class="lidar-panel" data-panel="section-1" hidden>
+      <div class="lidar-section-heading">
+        <p class="lidar-eyebrow">Section 1</p>
+        <h2>LiDAR or Camera?</h2>
+        <p>
+          Cameras record light and color from a scene. LiDAR actively sends laser
+          pulses and measures distance, so it can represent depth even when the
+          final display looks like an image.
+        </p>
+      </div>
+
+      <div class="lidar-compare">
+        <article class="lidar-compare__pane">
+          <div class="lidar-compare__heading">
+            <h3>Camera image</h3>
+            <p>Color and texture help you recognize objects.</p>
+          </div>
+          <div class="camera-scene" role="img" aria-label="A simplified camera-style scene with a road, building, and tree">
+            <span class="camera-scene__sky"></span>
+            <span class="camera-scene__sun"></span>
+            <span class="camera-scene__building"></span>
+            <span class="camera-scene__tree camera-scene__tree--left"></span>
+            <span class="camera-scene__tree camera-scene__tree--right"></span>
+            <span class="camera-scene__road"></span>
+          </div>
+        </article>
+
+        <article class="lidar-compare__pane">
+          <div class="lidar-compare__heading">
+            <h3>LiDAR point cloud</h3>
+            <p>Many measured points outline surfaces in 3D space.</p>
+          </div>
+          <canvas class="point-cloud" data-point-cloud-canvas width="640" height="420" aria-label="A point cloud representation of terrain, trees, and a building"></canvas>
+        </article>
+      </div>
+
+      <div class="lidar-activity">
+        <div>
+          <p class="lidar-eyebrow">Activity</p>
+          <h3>Compare the two representations.</h3>
+          <p>
+            Decide what the camera view helps you notice, then decide what the
+            LiDAR point cloud adds that the camera does not directly measure.
+          </p>
+        </div>
+        <div class="lidar-quiz" data-checkin="section-1">
+          <h4>Check-in question</h4>
+          <p>What information does LiDAR capture that a regular camera image does not directly measure?</p>
+          <div class="lidar-choice-group" role="group" aria-label="Section 1 check-in options">
+            <button type="button" data-choice="incorrect">Only the color of each object</button>
+            <button type="button" data-choice="correct">Distance or depth from the sensor</button>
+            <button type="button" data-choice="incorrect">Only a flat 2D photograph</button>
+          </div>
+          <p class="lidar-feedback" data-feedback aria-live="polite"></p>
+          <label class="lidar-response">
+            <span>Your note</span>
+            <textarea data-response-input rows="4" placeholder="Write a short answer in your own words."></textarea>
+          </label>
+          <button class="lidar-button lidar-button--primary" type="button" data-save-response>Save note</button>
+        </div>
+      </div>
+
+      <div class="lidar-section-nav">
+        <span></span>
+        <button class="lidar-button lidar-button--primary" type="button" data-open-panel="section-2">Next: Measuring Distance →</button>
+      </div>
+    </section>
+
+    <!-- Section 2 -->
+    <section class="lidar-panel" data-panel="section-2" hidden>
+      <div class="lidar-section-heading">
+        <p class="lidar-eyebrow">Section 2</p>
+        <h2>Measuring Distance with Light</h2>
+        <p>
+          LiDAR sends out a laser pulse and measures how long it takes to return
+          after hitting a surface. Because the speed of light is known, travel
+          time can be converted into distance.
+        </p>
+      </div>
+
+      <div class="tof-grid">
+        <article class="lidar-card">
+          <h3>The idea</h3>
+          <p>
+            The laser pulse makes a round trip: sensor to surface, then surface
+            back to sensor. LiDAR measures that total travel time.
+          </p>
+          <div class="tof-formula" aria-label="Distance formula">
+            <span>distance</span>
+            <strong>=</strong>
+            <span>(speed of light × round-trip time) ÷ 2</span>
+          </div>
+          <ol class="lidar-list">
+            <li>Send a pulse of light.</li>
+            <li>Measure how long it takes to return.</li>
+            <li>Use the speed of light to estimate total travel distance.</li>
+            <li>Divide by two to get the one-way distance to the surface.</li>
+          </ol>
+        </article>
+
+        <article class="tof-calculator" data-tof-calculator>
+          <div class="tof-calculator__header">
+            <div>
+              <p class="lidar-eyebrow">Activity</p>
+              <h3>Try a simplified time-of-flight calculation.</h3>
+            </div>
+            <span class="tof-badge">speed of light ≈ 0.3 m/ns</span>
+          </div>
+
+          <label class="tof-control">
+            <span>Round-trip time — <strong data-tof-time-label>600 ns</strong></span>
+            <input type="range" min="100" max="1600" step="50" value="600" data-tof-range>
+          </label>
+
+          <div class="tof-visual" aria-hidden="true">
+            <div class="tof-scanner">Sensor</div>
+            <div class="tof-beam">
+              <span class="tof-beam__line"></span>
+              <span class="tof-beam__pulse" data-tof-pulse></span>
+            </div>
+            <div class="tof-surface" data-tof-surface>Surface</div>
+          </div>
+
+          <div class="tof-readout" aria-live="polite">
+            <div>
+              <span>Round-trip travel</span>
+              <strong data-tof-total-distance>180 m</strong>
+            </div>
+            <div class="tof-readout__divider" aria-hidden="true">÷ 2</div>
+            <div>
+              <span>Distance to surface</span>
+              <strong data-tof-distance>90 m</strong>
+            </div>
+          </div>
+        </article>
+      </div>
+
+      <div class="lidar-quiz-block" data-checkin="section-2">
+        <h4>Check-in question</h4>
+        <p>Why does LiDAR divide the total travel distance by two?</p>
+        <div class="lidar-choice-group" role="group" aria-label="Section 2 check-in options">
+          <button type="button" data-choice="incorrect">Because the laser slows down halfway through the trip</button>
+          <button
+            type="button"
+            data-choice="correct"
+            data-correct-feedback="Yes. The pulse travels to the surface and back, so the measured distance is double the one-way distance."
+          >Because the measured trip includes the outgoing and returning path</button>
+          <button type="button" data-choice="incorrect">Because LiDAR only uses every second laser pulse</button>
+        </div>
+        <p class="lidar-feedback" data-feedback aria-live="polite"></p>
+        <label class="lidar-response">
+          <span>Your note</span>
+          <textarea data-response-input rows="3" placeholder="Explain the divide-by-two step in your own words."></textarea>
+        </label>
+        <button class="lidar-button lidar-button--primary" type="button" data-save-response>Save note</button>
+      </div>
+
+      <div class="lidar-section-nav">
+        <button class="lidar-button lidar-button--ghost" type="button" data-open-panel="section-1">← LiDAR or Camera?</button>
+        <button class="lidar-button lidar-button--primary" type="button" data-open-panel="section-3">Next: Point Clouds →</button>
+      </div>
+    </section>
+
+    <!-- Section 3 -->
+    <section class="lidar-panel" data-panel="section-3" hidden>
+      <div class="lidar-section-heading">
+        <p class="lidar-eyebrow">Section 3</p>
+        <h2>From Measurements to Point Clouds</h2>
+        <p>
+          A single LiDAR measurement gives one distance. A LiDAR system collects
+          many measurements very quickly. When measurements are combined with
+          sensor position and orientation information, they can be placed into a
+          3D coordinate system.
+        </p>
+      </div>
+      <article class="lidar-card">
+        <h3>Activity draft</h3>
+        <p>Build a mini point cloud using a simple grid.</p>
+        <p class="lidar-callout">Check-in: Why does a point cloud need many points instead of just one?</p>
+      </article>
+
+      <div class="lidar-section-nav">
+        <button class="lidar-button lidar-button--ghost" type="button" data-open-panel="section-2">← Measuring Distance</button>
+        <button class="lidar-button lidar-button--primary" type="button" data-open-panel="section-4">Next: Small Errors →</button>
+      </div>
+    </section>
+
+    <!-- Section 4 -->
+    <section class="lidar-panel" data-panel="section-4" hidden>
+      <div class="lidar-section-heading">
+        <p class="lidar-eyebrow">Section 4</p>
+        <h2>Why Small Errors Matter</h2>
+        <p>
+          LiDAR data is powerful, but it is not automatically perfect. Errors in
+          sensor position, angle, calibration, or timing can shift where points
+          appear in the final map.
+        </p>
+      </div>
+      <article class="lidar-card">
+        <h3>Activity draft</h3>
+        <p>Compare one accurate point-cloud scenario with another scenario that includes a small shift.</p>
+        <p class="lidar-callout">Reflection: If this map were being used for flood mapping, why would the error matter?</p>
+      </article>
+
+      <div class="lidar-section-nav">
+        <button class="lidar-button lidar-button--ghost" type="button" data-open-panel="section-3">← Point Clouds</button>
+        <button class="lidar-button lidar-button--primary" type="button" data-open-panel="section-5">Next: Case Study →</button>
+      </div>
+    </section>
+
+    <!-- Section 5 -->
+    <section class="lidar-panel" data-panel="section-5" hidden>
+      <div class="lidar-section-heading">
+        <p class="lidar-eyebrow">Section 5</p>
+        <h2>Real-World LiDAR Case Study</h2>
+        <p>
+          LiDAR is used in flood mapping, forestry, urban planning, archaeology,
+          infrastructure inspection, and autonomous vehicles.
+        </p>
+      </div>
+      <article class="lidar-card">
+        <h3>Activity draft</h3>
+        <p>Choose one real-world LiDAR use case and explain how accurate 3D data supports decision-making.</p>
+      </article>
+
+      <div class="lidar-section-nav">
+        <button class="lidar-button lidar-button--ghost" type="button" data-open-panel="section-4">← Small Errors</button>
+        <button class="lidar-button lidar-button--primary" type="button" data-open-panel="final">Next: Final Task →</button>
+      </div>
+    </section>
+
+    <!-- Final -->
+    <section class="lidar-panel" data-panel="final" hidden>
+      <div class="lidar-section-heading">
+        <p class="lidar-eyebrow">Final Assessment</p>
+        <h2>Flood-risk mapping scenario</h2>
+        <p>
+          A city is using airborne LiDAR data to create a flood-risk map. During
+          data collection, there is a small sensor positioning or orientation
+          error.
+        </p>
+      </div>
+      <article class="lidar-card">
+        <h3>Applied task</h3>
+        <ol class="lidar-list">
+          <li>How does LiDAR collect the measurements used to create the map?</li>
+          <li>What is a point cloud?</li>
+          <li>What is one possible source of error in this process?</li>
+          <li>Why could a small error matter for flood mapping?</li>
+          <li>What should people remember before trusting a 3D map completely?</li>
+        </ol>
+        <p class="lidar-callout">Submit a short written explanation, a labelled diagram, or a brief slide/poster.</p>
+      </article>
+
+      <div class="lidar-section-nav">
+        <button class="lidar-button lidar-button--ghost" type="button" data-open-panel="section-5">← Case Study</button>
+        <span></span>
+      </div>
+    </section>
+
+  </main>
+</div>
