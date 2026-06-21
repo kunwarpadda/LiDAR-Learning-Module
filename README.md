@@ -12,6 +12,15 @@ templates/
 
 The site does not require WordPress, PHP, a backend, or plugin permissions.
 
+Current learning-design revision:
+
+- Prediction prompts before simulations
+- Variable-based experimentation for point-cloud quality
+- Error propagation challenge with GPS/GNSS, IMU, and laser uncertainty sliders
+- Required vs optional tool guidance
+- Visible accessibility descriptions for visual activities
+- Final assessment mapped to the module learning outcomes
+
 ## Local Preview
 
 From the project root:

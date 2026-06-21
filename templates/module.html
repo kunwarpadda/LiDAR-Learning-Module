@@ -71,6 +71,35 @@
         </article>
       </div>
 
+      <div class="lidar-support-grid">
+        <article class="lidar-card">
+          <h3>Required tools in this module</h3>
+          <p>
+            The required learning path uses the built-in activities on this site:
+            the time-of-flight calculator, point-cloud simulator, and error
+            propagation challenge. These keep the main path focused and reduce
+            tool switching.
+          </p>
+        </article>
+        <article class="lidar-card">
+          <h3>Optional demonstrations</h3>
+          <p>
+            Potree Viewer, CloudCompare, and QGIS can be used as optional demos
+            if you want to inspect real LiDAR files later. They are not required
+            to complete this module.
+          </p>
+        </article>
+        <article class="lidar-card">
+          <h3>Accessibility supports</h3>
+          <p>
+            Each visual activity includes written descriptions, high-contrast
+            colors, keyboard-accessible controls, and text summaries of visual
+            patterns. Any added video demonstration should include captions and
+            a downloadable transcript.
+          </p>
+        </article>
+      </div>
+
       <section class="lidar-flow" id="module-flow" aria-labelledby="module-flow-title">
         <div class="lidar-section-heading">
           <p class="lidar-eyebrow">Module Flow</p>
@@ -137,6 +166,10 @@
             <span class="camera-scene__tree camera-scene__tree--right"></span>
             <span class="camera-scene__road"></span>
           </div>
+          <p class="visual-description">
+            Visual description: the camera-style scene shows color, texture, and
+            object appearance, but it does not directly label measured distances.
+          </p>
         </article>
 
         <article class="lidar-compare__pane">
@@ -145,6 +178,11 @@
             <p>Many measured points outline surfaces in 3D space.</p>
           </div>
           <canvas class="point-cloud" data-point-cloud-canvas width="640" height="420" aria-label="A point cloud representation of terrain, trees, and a building"></canvas>
+          <p class="visual-description">
+            Visual description: the point cloud uses many dots to outline ground,
+            trees, and a building. The pattern emphasizes measured positions
+            rather than photo-like color and texture.
+          </p>
         </article>
       </div>
 
@@ -225,6 +263,10 @@
             <span>Round-trip time — <strong data-tof-time-label>600 ns</strong></span>
             <input type="range" min="100" max="1600" step="50" value="600" data-tof-range>
           </label>
+          <p class="experiment-prompt">
+            Predict first: if you double the round-trip time, what should happen
+            to the one-way distance?
+          </p>
 
           <div class="tof-visual" aria-hidden="true">
             <div class="tof-scanner">Sensor</div>
@@ -288,10 +330,76 @@
         </p>
       </div>
       <article class="lidar-card">
-        <h3>Activity draft</h3>
-        <p>Build a mini point cloud using a simple grid.</p>
-        <p class="lidar-callout">Check-in: Why does a point cloud need many points instead of just one?</p>
+        <h3>Build a mini point cloud</h3>
+        <p>
+          A point cloud is easier to interpret when enough points are collected
+          from useful angles and the measurements are not too noisy. Make a
+          prediction, then change the scan settings and compare the result.
+        </p>
       </article>
+
+      <div class="experiment-grid" data-point-experiment>
+        <article class="experiment-panel">
+          <p class="lidar-eyebrow">Predict</p>
+          <h3>What will the point cloud look like?</h3>
+          <label class="lidar-response">
+            <span>Your prediction</span>
+            <textarea data-response-input rows="3" placeholder="Example: I think low density and high error will make the object harder to recognize."></textarea>
+          </label>
+
+          <label class="experiment-control">
+            <span>Scan density: <strong data-density-label>Medium</strong></span>
+            <input type="range" min="1" max="3" step="1" value="2" data-density-control>
+          </label>
+          <label class="experiment-control">
+            <span>Measurement error: <strong data-error-label>Low</strong></span>
+            <input type="range" min="0" max="2" step="1" value="0" data-error-control>
+          </label>
+          <label class="experiment-control">
+            <span>Viewing angle: <strong data-angle-label>Front</strong></span>
+            <input type="range" min="-1" max="1" step="1" value="0" data-angle-control>
+          </label>
+
+          <button class="lidar-button lidar-button--primary" type="button" data-run-point-experiment>
+            Generate point cloud
+          </button>
+        </article>
+
+        <article class="experiment-panel">
+          <div class="experiment-panel__header">
+            <div>
+              <p class="lidar-eyebrow">Observe</p>
+              <h3>Generated point cloud</h3>
+            </div>
+            <span class="tof-badge" data-quality-label>Waiting for prediction</span>
+          </div>
+          <canvas class="experiment-canvas" data-mini-cloud-canvas width="640" height="420" aria-label="Generated mini point cloud based on scan density, measurement error, and viewing angle"></canvas>
+          <p class="visual-description" data-cloud-description>
+            Set the scan variables, write a prediction, then generate the point
+            cloud. The text summary will describe the visual pattern.
+          </p>
+        </article>
+      </div>
+
+      <div class="lidar-quiz-block" data-checkin="section-3">
+        <h4>Check-in question</h4>
+        <p>Why does a point cloud need many points instead of just one?</p>
+        <div class="lidar-choice-group" role="group" aria-label="Section 3 check-in options">
+          <button type="button" data-choice="incorrect">Because one point already shows the whole surface</button>
+          <button
+            type="button"
+            data-choice="correct"
+            data-correct-feedback="Yes. Many points are needed because each point only gives one measured location; together they reveal shape, edges, and surface patterns."
+          >Because many points together reveal shape and surface patterns</button>
+          <button type="button" data-choice="incorrect">Because LiDAR points only store color</button>
+        </div>
+        <p class="lidar-feedback" data-feedback aria-live="polite"></p>
+        <label class="lidar-response">
+          <span>Your reflection</span>
+          <textarea data-response-input rows="3" placeholder="What changed when you adjusted density, error, or viewing angle?"></textarea>
+        </label>
+        <button class="lidar-button lidar-button--primary" type="button" data-save-response>Save note</button>
+      </div>
 
       <div class="lidar-section-nav">
         <button class="lidar-button lidar-button--ghost" type="button" data-open-panel="section-2">← Measuring Distance</button>
@@ -310,11 +418,63 @@
           appear in the final map.
         </p>
       </div>
-      <article class="lidar-card">
-        <h3>Activity draft</h3>
-        <p>Compare one accurate point-cloud scenario with another scenario that includes a small shift.</p>
-        <p class="lidar-callout">Reflection: If this map were being used for flood mapping, why would the error matter?</p>
-      </article>
+      <div class="experiment-grid" data-error-experiment>
+        <article class="experiment-panel">
+          <p class="lidar-eyebrow">Predict</p>
+          <h3>Which sensor will contribute most error?</h3>
+          <p>
+            Before changing the sliders, choose the sensor you think will move
+            the final point the most.
+          </p>
+          <div class="prediction-row" role="group" aria-label="Sensor error prediction">
+            <label><input type="radio" name="error-prediction" value="GPS"> GPS/GNSS</label>
+            <label><input type="radio" name="error-prediction" value="IMU"> IMU angle</label>
+            <label><input type="radio" name="error-prediction" value="Laser"> Laser timing</label>
+          </div>
+
+          <label class="experiment-control">
+            <span>GPS/GNSS position error: <strong data-gps-label>0.50 m</strong></span>
+            <input type="range" min="0" max="2" step="0.25" value="0.5" data-gps-error>
+          </label>
+          <label class="experiment-control">
+            <span>IMU orientation error: <strong data-imu-label>0.25 degrees</strong></span>
+            <input type="range" min="0" max="2" step="0.25" value="0.25" data-imu-error>
+          </label>
+          <label class="experiment-control">
+            <span>Laser distance error: <strong data-laser-label>0.10 m</strong></span>
+            <input type="range" min="0" max="1" step="0.05" value="0.1" data-laser-error>
+          </label>
+        </article>
+
+        <article class="experiment-panel">
+          <div class="experiment-panel__header">
+            <div>
+              <p class="lidar-eyebrow">Observe</p>
+              <h3>Final point position</h3>
+            </div>
+            <span class="tof-badge" data-largest-error>GPS/GNSS contributes most</span>
+          </div>
+          <canvas class="experiment-canvas" data-error-canvas width="640" height="420" aria-label="Error propagation display showing the target point, shifted measured point, and uncertainty radius"></canvas>
+          <div class="error-readout" aria-live="polite">
+            <div><span>Total estimated shift</span><strong data-total-error>0.60 m</strong></div>
+            <div><span>IMU shift at 80 m range</span><strong data-imu-shift>0.35 m</strong></div>
+          </div>
+          <p class="visual-description" data-error-description>
+            The target point and measured point are close together. Increase a
+            sensor error to see how the final map point shifts.
+          </p>
+        </article>
+      </div>
+
+      <div class="lidar-quiz-block" data-checkin="section-4">
+        <h4>Reflection question</h4>
+        <p>If this map were being used for flood mapping, why would the error matter?</p>
+        <label class="lidar-response">
+          <span>Your explanation</span>
+          <textarea data-response-input rows="4" placeholder="Connect the point shift to a real decision, such as whether a road or building is shown inside a flood-risk zone."></textarea>
+        </label>
+        <button class="lidar-button lidar-button--primary" type="button" data-save-response>Save note</button>
+      </div>
 
       <div class="lidar-section-nav">
         <button class="lidar-button lidar-button--ghost" type="button" data-open-panel="section-3">← Point Clouds</button>
@@ -333,8 +493,25 @@
         </p>
       </div>
       <article class="lidar-card">
-        <h3>Activity draft</h3>
-        <p>Choose one real-world LiDAR use case and explain how accurate 3D data supports decision-making.</p>
+        <h3>Choose a case and explain the accuracy need</h3>
+        <p>
+          Pick one application below. Identify the decision being made, the part
+          of the LiDAR workflow that supports the decision, and one way inaccurate
+          3D data could lead to a poor outcome.
+        </p>
+        <div class="case-grid">
+          <button class="case-option" type="button" data-case-option="Flood mapping">Flood mapping</button>
+          <button class="case-option" type="button" data-case-option="Forestry">Forestry</button>
+          <button class="case-option" type="button" data-case-option="Urban planning">Urban planning</button>
+          <button class="case-option" type="button" data-case-option="Infrastructure inspection">Infrastructure inspection</button>
+        </div>
+        <p class="visual-description" data-case-description>
+          Select a case to see a decision prompt.
+        </p>
+        <label class="lidar-response">
+          <span>Your case study explanation</span>
+          <textarea data-response-input rows="5" placeholder="Explain why accurate 3D data matters in your selected case."></textarea>
+        </label>
       </article>
 
       <div class="lidar-section-nav">
@@ -355,15 +532,46 @@
         </p>
       </div>
       <article class="lidar-card">
-        <h3>Applied task</h3>
-        <ol class="lidar-list">
-          <li>How does LiDAR collect the measurements used to create the map?</li>
-          <li>What is a point cloud?</li>
-          <li>What is one possible source of error in this process?</li>
-          <li>Why could a small error matter for flood mapping?</li>
-          <li>What should people remember before trusting a 3D map completely?</li>
+        <h3>Applied task aligned to the learning outcomes</h3>
+        <p>
+          Submit a short written response, labelled diagram, or brief slide/poster
+          that answers each prompt.
+        </p>
+        <ol class="assessment-list">
+          <li>
+            <strong>LiDAR vs camera:</strong> Explain one difference between a
+            camera image and a LiDAR measurement.
+          </li>
+          <li>
+            <strong>Time-of-flight calculation:</strong> If a pulse has a
+            round-trip time of 800 ns and light travels about 0.3 m/ns, calculate
+            the one-way distance to the surface.
+          </li>
+          <li>
+            <strong>GNSS/GPS and IMU roles:</strong> Identify what GNSS/GPS
+            contributes and what the IMU contributes when placing LiDAR points
+            into a coordinate system.
+          </li>
+          <li>
+            <strong>Point cloud interpretation:</strong> Describe what a point
+            cloud represents and how scan density or viewing angle can change
+            what you can recognize.
+          </li>
+          <li>
+            <strong>Uncertainty analysis:</strong> Name one source of error and
+            explain how it could shift the final point position.
+          </li>
+          <li>
+            <strong>Real-world scenario:</strong> In the flood-risk mapping
+            scenario, explain why a small position or orientation error could
+            affect a decision.
+          </li>
         </ol>
-        <p class="lidar-callout">Submit a short written explanation, a labelled diagram, or a brief slide/poster.</p>
+        <p class="lidar-callout">
+          Before submitting, check that your answer includes calculation,
+          sensor roles, point-cloud interpretation, uncertainty, and a real-world
+          decision.
+        </p>
       </article>
 
       <div class="lidar-section-nav">

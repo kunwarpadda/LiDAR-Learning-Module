@@ -326,6 +326,13 @@
   margin-top: 8px;
 }
 
+.lidar-support-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-top: 16px;
+}
+
 /* ── Module flow ── */
 
 .lidar-flow {
@@ -794,6 +801,169 @@
   padding: 24px;
 }
 
+/* ── Experiment activities ── */
+
+.experiment-prompt {
+  border-left: 3px solid var(--accent);
+  color: var(--ink);
+  font-size: 0.92rem;
+  margin: 16px 0 0;
+  padding: 8px 12px;
+}
+
+.experiment-grid {
+  align-items: start;
+  display: grid;
+  gap: 16px;
+  grid-template-columns: minmax(280px, 0.82fr) minmax(0, 1.18fr);
+  margin-top: 20px;
+}
+
+.experiment-panel {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 24px;
+}
+
+.experiment-panel h3,
+.lidar-quiz-block h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.experiment-panel p {
+  color: var(--muted);
+  font-size: 0.95rem;
+  margin: 8px 0 0;
+}
+
+.experiment-panel__header {
+  align-items: flex-start;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+}
+
+.experiment-control {
+  display: grid;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.experiment-control span {
+  color: var(--ink);
+  font-size: 0.88rem;
+  font-weight: 500;
+}
+
+.experiment-control input[type="range"] {
+  accent-color: var(--accent);
+  width: 100%;
+}
+
+.experiment-canvas {
+  background: var(--surface-alt);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  display: block;
+  margin-top: 16px;
+  min-height: 280px;
+  width: 100%;
+}
+
+.visual-description {
+  background: var(--surface-alt);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: var(--muted);
+  font-size: 0.9rem;
+  margin-top: 12px;
+  padding: 12px;
+}
+
+.prediction-row {
+  display: grid;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.prediction-row label {
+  align-items: center;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  display: flex;
+  gap: 8px;
+  min-height: 40px;
+  padding: 8px 10px;
+}
+
+.error-readout {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 14px;
+}
+
+.error-readout div {
+  background: var(--surface-alt);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 12px;
+}
+
+.error-readout span {
+  color: var(--muted);
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.error-readout strong {
+  display: block;
+  font-size: 1.25rem;
+  margin-top: 4px;
+}
+
+.case-grid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 18px;
+}
+
+.case-option {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: var(--ink);
+  cursor: pointer;
+  font-size: 0.93rem;
+  font-weight: 600;
+  min-height: 44px;
+  padding: 10px 12px;
+  text-align: left;
+}
+
+.case-option:hover,
+.case-option:focus-visible,
+.case-option.is-selected {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(23, 99, 91, 0.08);
+}
+
+.assessment-list {
+  color: var(--ink);
+  font-size: 0.95rem;
+  margin: 18px 0 0;
+  padding-left: 1.2rem;
+}
+
+.assessment-list li + li {
+  margin-top: 12px;
+}
+
 /* ── Responsive ── */
 
 @media (max-width: 920px) {
@@ -803,9 +973,11 @@
 
   .lidar-hero,
   .lidar-overview-grid,
+  .lidar-support-grid,
   .lidar-compare,
   .lidar-activity,
-  .tof-grid {
+  .tof-grid,
+  .experiment-grid {
     grid-template-columns: 1fr;
   }
 
@@ -829,6 +1001,11 @@
   }
 
   .tof-readout {
+    grid-template-columns: 1fr;
+  }
+
+  .error-readout,
+  .case-grid {
     grid-template-columns: 1fr;
   }
 
