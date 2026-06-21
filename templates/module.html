@@ -17,6 +17,8 @@
     <span data-progress-label>Home</span>
   </div>
 
+  <div class="lidar-toast" data-toast role="status" aria-live="polite" hidden></div>
+
   <main class="lidar-panels">
 
     <!-- Home -->
@@ -37,6 +39,22 @@
             <button class="lidar-button lidar-button--secondary" type="button" data-scroll-target="module-flow">
               View Module Flow
             </button>
+          </div>
+          <div class="lidar-identity" data-identity>
+            <label class="lidar-identity__label" for="lidar-learner-name">Your name (optional)</label>
+            <div class="lidar-identity__row">
+              <input
+                class="lidar-identity__input"
+                id="lidar-learner-name"
+                type="text"
+                maxlength="40"
+                autocomplete="off"
+                placeholder="Enter a name or stay anonymous"
+                data-name-input
+              >
+              <button class="lidar-button lidar-button--secondary" type="button" data-suggest-name>Suggest a name</button>
+            </div>
+            <p class="lidar-identity__hint" data-name-greeting hidden></p>
           </div>
         </div>
         <div class="lidar-hero__visual" aria-label="Animated LiDAR pulses over terrain">
@@ -576,9 +594,33 @@
 
       <div class="lidar-section-nav">
         <button class="lidar-button lidar-button--ghost" type="button" data-open-panel="section-5">← Case Study</button>
-        <span></span>
+        <button class="lidar-button lidar-button--primary" type="button" data-finish-module>Finish &amp; celebrate 🎉</button>
       </div>
     </section>
 
   </main>
+
+  <div class="lidar-celebrate" data-celebrate hidden>
+    <canvas class="lidar-celebrate__confetti" data-confetti-canvas aria-hidden="true"></canvas>
+    <div class="lidar-celebrate__card" role="dialog" aria-modal="true" aria-labelledby="lidar-celebrate-title">
+      <p class="lidar-celebrate__emoji" aria-hidden="true">🎉</p>
+      <h2 id="lidar-celebrate-title">Module complete!</h2>
+      <p class="lidar-celebrate__name" data-celebrate-name>Nice work!</p>
+      <p>
+        You worked through all five sections and the applied final task — from
+        comparing LiDAR with cameras to reasoning about how small errors change
+        real-world decisions.
+      </p>
+      <ul class="lidar-celebrate__list">
+        <li>LiDAR vs camera</li>
+        <li>Time-of-flight distance</li>
+        <li>Point clouds</li>
+        <li>Error propagation</li>
+        <li>Real-world case study</li>
+      </ul>
+      <div class="lidar-celebrate__actions">
+        <button class="lidar-button lidar-button--primary" type="button" data-celebrate-close>Keep exploring</button>
+      </div>
+    </div>
+  </div>
 </div>

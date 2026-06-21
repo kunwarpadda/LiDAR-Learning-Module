@@ -10,6 +10,32 @@
     final: 'Final Task',
   };
 
+  // Sections that must be "attempted" before the next one unlocks, plus the
+  // selectors that count as an attempt (any interaction is enough).
+  const attemptSelectors = {
+    'section-1': ['[data-choice]', '[data-response-input]'],
+    'section-2': ['[data-choice]', '[data-tof-range]', '[data-response-input]'],
+    'section-3': ['[data-run-point-experiment]', '[data-choice]', '[data-response-input]'],
+    'section-4': ['[data-gps-error]', '[data-imu-error]', '[data-laser-error]', 'input[name="error-prediction"]', '[data-response-input]'],
+    'section-5': ['[data-case-option]', '[data-response-input]'],
+  };
+
+  const suggestedNames = [
+    'Curious Cartographer',
+    'Laser Pioneer',
+    'Point Cloud Pilot',
+    'Terrain Scout',
+    'Echo Surveyor',
+    'Pulse Navigator',
+    'Summit Mapper',
+    'Beacon Ranger',
+    'LiDAR Voyager',
+    'Canopy Explorer',
+  ];
+
+  const NAME_KEY = 'lidar-learning-name';
+  const PROGRESS_KEY = 'lidar-learning-progress';
+
   function initAll() {
     document.querySelectorAll('[data-lidar-module]:not([data-lidar-ready])').forEach(initModule);
   }
@@ -20,8 +46,86 @@
     const panels = Array.from(module.querySelectorAll('[data-panel]'));
     const progressBar = module.querySelector('[data-progress-bar]');
     const progressLabel = module.querySelector('[data-progress-label]');
+    const toast = module.querySelector('[data-toast]');
 
-    function openPanel(panelName) {
+    // ── Redraw-on-reveal ────────────────────────────────────────────────
+    // Canvases drawn while their panel is hidden can come back blank when the
+    // panel is finally shown (notably on iOS Safari / inside WordPress). We
+    // re-run each panel's draw functions at the moment it becomes visible.
+    const redrawHandlers = {};
+    function registerRedraw(panelName, fn) {
+      (redrawHandlers[panelName] = redrawHandlers[panelName] || []).push(fn);
+    }
+    function runRedraws(panelName) {
+      (redrawHandlers[panelName] || []).forEach((fn) => {
+        try {
+          fn();
+        } catch (error) {
+          /* ignore draw errors */
+        }
+      });
+    }
+
+    // ── Progress / gating ───────────────────────────────────────────────
+    const completed = loadCompleted();
+
+    function highestCompletedIndex() {
+      let highest = 0;
+      completed.forEach((name) => {
+        highest = Math.max(highest, panelOrder.indexOf(name));
+      });
+      return highest;
+    }
+    function maxUnlockedIndex() {
+      return Math.min(panelOrder.length - 1, Math.max(1, highestCompletedIndex() + 1));
+    }
+    function isUnlocked(panelName) {
+      return panelOrder.indexOf(panelName) <= maxUnlockedIndex();
+    }
+    function markComplete(panelName) {
+      if (completed.has(panelName)) {
+        return;
+      }
+      completed.add(panelName);
+      saveCompleted(completed);
+      updateLocks();
+    }
+    function updateLocks() {
+      const max = maxUnlockedIndex();
+      const lock = (element, targetName) => {
+        const locked = panelOrder.indexOf(targetName) > max;
+        element.classList.toggle('is-locked', locked);
+        element.disabled = locked;
+        element.setAttribute('aria-disabled', String(locked));
+      };
+      tabs.forEach((tab) => lock(tab, tab.dataset.panelTarget));
+      module.querySelectorAll('[data-open-panel]').forEach((button) => lock(button, button.dataset.openPanel));
+    }
+
+    let toastTimer = null;
+    function showToast(message) {
+      if (!toast) {
+        return;
+      }
+      toast.textContent = message;
+      toast.hidden = false;
+      toast.classList.add('is-visible');
+      clearTimeout(toastTimer);
+      toastTimer = window.setTimeout(() => {
+        toast.classList.remove('is-visible');
+        toast.hidden = true;
+      }, 2600);
+    }
+
+    let heroAnim = null;
+
+    function openPanel(panelName, options) {
+      const opts = options || {};
+      if (!opts.force && !isUnlocked(panelName)) {
+        showToast('Finish the current step to unlock the next one.');
+        return false;
+      }
+
       panels.forEach((panel) => {
         const isActive = panel.dataset.panel === panelName;
         panel.classList.toggle('is-active', isActive);
@@ -43,7 +147,20 @@
         progressLabel.textContent = panelLabels[panelName] || panelName;
       }
 
-      module.scrollIntoView({ behavior: prefersReducedMotion() ? 'auto' : 'smooth', block: 'start' });
+      if (heroAnim) {
+        if (panelName === 'home') {
+          heroAnim.start();
+        } else {
+          heroAnim.stop();
+        }
+      }
+
+      runRedraws(panelName);
+
+      if (opts.scroll !== false) {
+        module.scrollIntoView({ behavior: prefersReducedMotion() ? 'auto' : 'smooth', block: 'start' });
+      }
+      return true;
     }
 
     tabs.forEach((tab) => {
@@ -63,13 +180,197 @@
       });
     });
 
+    // Mark a section complete after any genuine interaction within it.
+    Object.keys(attemptSelectors).forEach((panelName) => {
+      const panel = module.querySelector(`[data-panel="${panelName}"]`);
+      if (!panel) {
+        return;
+      }
+      attemptSelectors[panelName].forEach((selector) => {
+        panel.querySelectorAll(selector).forEach((element) => {
+          const eventName = element.tagName === 'BUTTON' ? 'click' : 'input';
+          element.addEventListener(eventName, () => markComplete(panelName));
+        });
+      });
+    });
+
+    const identity = initIdentity(module);
+
+    const finishButton = module.querySelector('[data-finish-module]');
+    if (finishButton) {
+      finishButton.addEventListener('click', () => {
+        markComplete('final');
+        showCelebration(module, identity.getName());
+      });
+    }
+
     initQuiz(module);
     initTimeOfFlight(module);
-    initPointExperiment(module);
-    initErrorExperiment(module);
+    initPointExperiment(module, registerRedraw);
+    initErrorExperiment(module, registerRedraw);
     initCaseOptions(module);
-    drawPointCloud(module.querySelector('[data-point-cloud-canvas]'));
-    initHeroCanvas(module.querySelector('[data-lidar-hero-canvas]'));
+
+    const pointCloudCanvas = module.querySelector('[data-point-cloud-canvas]');
+    if (pointCloudCanvas) {
+      drawPointCloud(pointCloudCanvas);
+      registerRedraw('section-1', () => drawPointCloud(pointCloudCanvas));
+    }
+
+    heroAnim = initHeroCanvas(module.querySelector('[data-lidar-hero-canvas]'));
+
+    updateLocks();
+    openPanel('home', { force: true, scroll: false });
+  }
+
+  function initIdentity(module) {
+    const input = module.querySelector('[data-name-input]');
+    const suggestButton = module.querySelector('[data-suggest-name]');
+    const greeting = module.querySelector('[data-name-greeting]');
+
+    function getName() {
+      return input ? input.value.trim() : '';
+    }
+
+    function updateGreeting() {
+      if (!greeting) {
+        return;
+      }
+      const name = getName();
+      if (name) {
+        greeting.textContent = `Hi, ${name} — your progress is saved on this device.`;
+        greeting.hidden = false;
+      } else {
+        greeting.hidden = true;
+      }
+    }
+
+    if (input) {
+      input.value = getStoredNote(NAME_KEY);
+      input.addEventListener('input', () => {
+        saveStoredNote(NAME_KEY, getName());
+        updateGreeting();
+      });
+    }
+
+    if (suggestButton && input) {
+      suggestButton.addEventListener('click', () => {
+        const pick = suggestedNames[Math.floor(Math.random() * suggestedNames.length)];
+        input.value = pick;
+        saveStoredNote(NAME_KEY, pick);
+        updateGreeting();
+        input.focus();
+      });
+    }
+
+    updateGreeting();
+    return { getName };
+  }
+
+  function showCelebration(module, name) {
+    const overlay = module.querySelector('[data-celebrate]');
+    if (!overlay) {
+      return;
+    }
+
+    const nameLabel = overlay.querySelector('[data-celebrate-name]');
+    if (nameLabel) {
+      nameLabel.textContent = name ? `Nice work, ${name}!` : 'Nice work!';
+    }
+
+    overlay.hidden = false;
+    overlay.classList.add('is-visible');
+
+    const canvas = overlay.querySelector('[data-confetti-canvas]');
+    const closeButton = overlay.querySelector('[data-celebrate-close]');
+    let stopConfetti = function () {};
+    if (canvas && !prefersReducedMotion()) {
+      stopConfetti = runConfetti(canvas);
+    }
+
+    function close() {
+      overlay.classList.remove('is-visible');
+      overlay.hidden = true;
+      stopConfetti();
+      document.removeEventListener('keydown', onKeyDown);
+    }
+    function onKeyDown(event) {
+      if (event.key === 'Escape') {
+        close();
+      }
+    }
+
+    if (closeButton) {
+      closeButton.addEventListener('click', close, { once: true });
+      closeButton.focus();
+    }
+    overlay.addEventListener('click', (event) => {
+      if (event.target === overlay) {
+        close();
+      }
+    });
+    document.addEventListener('keydown', onKeyDown);
+  }
+
+  function runConfetti(canvas) {
+    const context = canvas.getContext('2d');
+    const colors = ['#d95735', '#f6c66d', '#67d06d', '#8be0d3', '#ffd29a', '#17635b'];
+
+    function resize() {
+      canvas.width = canvas.clientWidth || window.innerWidth;
+      canvas.height = canvas.clientHeight || window.innerHeight;
+    }
+    resize();
+
+    const pieces = Array.from({ length: 150 }, () => ({
+      x: Math.random() * canvas.width,
+      y: Math.random() * -canvas.height,
+      size: 4 + Math.random() * 7,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      vx: (Math.random() - 0.5) * 1.6,
+      vy: 2 + Math.random() * 3.6,
+      rotation: Math.random() * Math.PI,
+      spin: (Math.random() - 0.5) * 0.22,
+    }));
+
+    let rafId = null;
+    let running = true;
+
+    function frame() {
+      context.clearRect(0, 0, canvas.width, canvas.height);
+      pieces.forEach((piece) => {
+        piece.x += piece.vx;
+        piece.y += piece.vy;
+        piece.vy += 0.02;
+        piece.rotation += piece.spin;
+        if (piece.y > canvas.height + 24) {
+          piece.y = -24;
+          piece.x = Math.random() * canvas.width;
+          piece.vy = 2 + Math.random() * 3.6;
+        }
+        context.save();
+        context.translate(piece.x, piece.y);
+        context.rotate(piece.rotation);
+        context.fillStyle = piece.color;
+        context.fillRect(-piece.size / 2, -piece.size / 2, piece.size, piece.size * 0.6);
+        context.restore();
+      });
+      if (running) {
+        rafId = requestAnimationFrame(frame);
+      }
+    }
+    rafId = requestAnimationFrame(frame);
+
+    const onResize = () => resize();
+    window.addEventListener('resize', onResize);
+
+    return function stop() {
+      running = false;
+      if (rafId) {
+        cancelAnimationFrame(rafId);
+      }
+      window.removeEventListener('resize', onResize);
+      context.clearRect(0, 0, canvas.width, canvas.height);
+    };
   }
 
   function initQuiz(module) {
@@ -135,7 +436,7 @@
     });
   }
 
-  function initPointExperiment(module) {
+  function initPointExperiment(module, registerRedraw) {
     module.querySelectorAll('[data-point-experiment]').forEach((experiment) => {
       const density = experiment.querySelector('[data-density-control]');
       const error = experiment.querySelector('[data-error-control]');
@@ -178,6 +479,9 @@
         runButton.addEventListener('click', () => {
           experiment.dataset.hasRun = 'true';
           render();
+          if (canvas && window.matchMedia('(max-width: 920px)').matches) {
+            canvas.scrollIntoView({ behavior: prefersReducedMotion() ? 'auto' : 'smooth', block: 'center' });
+          }
         });
       }
 
@@ -189,10 +493,20 @@
           }
         });
       });
+
+      if (registerRedraw) {
+        registerRedraw('section-3', () => {
+          if (experiment.dataset.hasRun === 'true') {
+            render();
+          } else {
+            drawExperimentPlaceholder(canvas, 'Predict, then generate the point cloud');
+          }
+        });
+      }
     });
   }
 
-  function initErrorExperiment(module) {
+  function initErrorExperiment(module, registerRedraw) {
     module.querySelectorAll('[data-error-experiment]').forEach((experiment) => {
       const gps = experiment.querySelector('[data-gps-error]');
       const imu = experiment.querySelector('[data-imu-error]');
@@ -232,6 +546,10 @@
 
       [gps, imu, laser].filter(Boolean).forEach((control) => control.addEventListener('input', render));
       render();
+
+      if (registerRedraw) {
+        registerRedraw('section-4', render);
+      }
     });
   }
 
@@ -521,11 +839,13 @@
 
   function initHeroCanvas(canvas) {
     if (!canvas) {
-      return;
+      return null;
     }
 
     const context = canvas.getContext('2d');
     let frame = 0;
+    let rafId = null;
+    let running = false;
     const terrainPoints = Array.from({ length: 220 }, (_, index) => {
       const x = 24 + Math.random() * (canvas.width - 48);
       const y = canvas.height * 0.58 + Math.random() * (canvas.height * 0.34);
@@ -544,12 +864,32 @@
       drawPulseFan(context, width, height, frame);
 
       frame += 1;
-      if (!prefersReducedMotion()) {
-        requestAnimationFrame(draw);
+      if (running) {
+        rafId = requestAnimationFrame(draw);
       }
     }
 
-    draw();
+    function start() {
+      if (running) {
+        return;
+      }
+      if (prefersReducedMotion()) {
+        draw();
+        return;
+      }
+      running = true;
+      draw();
+    }
+
+    function stop() {
+      running = false;
+      if (rafId) {
+        cancelAnimationFrame(rafId);
+        rafId = null;
+      }
+    }
+
+    return { start, stop };
   }
 
   function drawHeroTerrain(context, width, height, terrainPoints) {
@@ -650,6 +990,25 @@
   function saveStoredNote(key, value) {
     try {
       window.localStorage.setItem(key, value);
+    } catch (error) {
+      return false;
+    }
+    return true;
+  }
+
+  function loadCompleted() {
+    try {
+      const raw = window.localStorage.getItem(PROGRESS_KEY);
+      const parsed = raw ? JSON.parse(raw) : [];
+      return new Set(Array.isArray(parsed) ? parsed : []);
+    } catch (error) {
+      return new Set();
+    }
+  }
+
+  function saveCompleted(set) {
+    try {
+      window.localStorage.setItem(PROGRESS_KEY, JSON.stringify(Array.from(set)));
     } catch (error) {
       return false;
     }
