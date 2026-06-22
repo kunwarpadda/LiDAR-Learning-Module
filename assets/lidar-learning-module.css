@@ -1201,20 +1201,20 @@
   justify-content: center;
   opacity: 0;
   padding: 24px;
+  /* pointer-events + visibility keep the overlay non-interactive until
+     .is-visible is added — this avoids fighting [hidden] attribute
+     specificity in WordPress / cross-browser environments */
   pointer-events: none;
   position: fixed;
-  transition: opacity 220ms ease;
+  transition: opacity 220ms ease, visibility 220ms ease;
+  visibility: hidden;
   z-index: 80;
-}
-
-/* Override [hidden] UA rule — author display: flex wins otherwise */
-.lidar-celebrate[hidden] {
-  display: none;
 }
 
 .lidar-celebrate.is-visible {
   opacity: 1;
   pointer-events: auto;
+  visibility: visible;
 }
 
 .lidar-celebrate__confetti {

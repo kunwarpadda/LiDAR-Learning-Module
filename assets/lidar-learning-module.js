@@ -277,7 +277,6 @@
       nameLabel.textContent = name ? `Nice work, ${name}!` : 'Nice work!';
     }
 
-    overlay.hidden = false;
     overlay.classList.add('is-visible');
 
     const canvas = overlay.querySelector('[data-confetti-canvas]');
@@ -289,7 +288,6 @@
 
     function close() {
       overlay.classList.remove('is-visible');
-      overlay.hidden = true;
       stopConfetti();
       document.removeEventListener('keydown', onKeyDown);
     }
