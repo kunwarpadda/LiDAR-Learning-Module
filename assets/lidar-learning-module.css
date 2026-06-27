@@ -1,6 +1,6 @@
 .lidar-module {
   --ink: #111111;
-  --muted: #6b6b6b;
+  --muted: #595959;
   --surface: #ffffff;
   --surface-alt: #f6f6f6;
   --line: #e4e4e4;
@@ -104,6 +104,22 @@
   opacity: 0.85;
 }
 
+/* ── Visible keyboard focus for all interactive controls ── */
+
+.lidar-module button:focus-visible,
+.lidar-module [role="tab"]:focus-visible,
+.lidar-module a:focus-visible,
+.lidar-module input:focus-visible,
+.lidar-module summary:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* On the dark hero, use a light ring so focus stays visible */
+.lidar-hero .lidar-button:focus-visible {
+  outline-color: #ffffff;
+}
+
 .lidar-button--primary {
   background: var(--accent);
   color: #ffffff;
@@ -195,6 +211,19 @@
   color: #ffffff;
 }
 
+/* Checkmark on completed sections so learners can see what's done */
+.lidar-tab.is-complete::after {
+  content: "✓";
+  color: #2f8f5b;
+  font-size: 0.85em;
+  font-weight: 700;
+  margin-left: 6px;
+}
+
+.lidar-tab.is-complete.is-active::after {
+  color: #ffffff;
+}
+
 /* ── Progress ── */
 
 .lidar-progress {
@@ -203,8 +232,25 @@
   display: grid;
   font-size: 0.85rem;
   gap: 10px;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: 1fr auto auto;
   margin: 14px 0 0;
+}
+
+.lidar-progress__reset {
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 4px 12px;
+}
+
+.lidar-progress__reset:hover,
+.lidar-progress__reset:focus-visible {
+  border-color: var(--ink);
+  color: var(--ink);
 }
 
 .lidar-progress__track {
@@ -329,8 +375,133 @@
 .lidar-support-grid {
   display: grid;
   gap: 16px;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   margin-top: 16px;
+}
+
+/* ── Disclosures (glossary, instructor notes) ── */
+
+.lidar-disclosure {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  margin-top: 16px;
+  padding: 0 18px;
+}
+
+.lidar-disclosure > summary {
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 600;
+  list-style: none;
+  padding: 16px 0;
+}
+
+.lidar-disclosure > summary::-webkit-details-marker {
+  display: none;
+}
+
+.lidar-disclosure > summary::before {
+  color: var(--accent);
+  content: "▸";
+  display: inline-block;
+  margin-right: 8px;
+}
+
+.lidar-disclosure[open] > summary::before {
+  content: "▾";
+}
+
+.lidar-disclosure[open] > summary {
+  border-bottom: 1px solid var(--line);
+}
+
+.lidar-instructor-note {
+  background: var(--surface-alt);
+}
+
+.lidar-instructor-note p {
+  color: var(--muted);
+  font-size: 0.9rem;
+  margin: 0 0 16px;
+}
+
+.lidar-glossary__list {
+  margin: 12px 0 16px;
+}
+
+.lidar-glossary__list > div {
+  border-top: 1px solid var(--line);
+  padding: 10px 0;
+}
+
+.lidar-glossary__list > div:first-child {
+  border-top: 0;
+}
+
+.lidar-glossary__list dt {
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+
+.lidar-glossary__list dd {
+  color: var(--muted);
+  font-size: 0.9rem;
+  margin: 2px 0 0;
+}
+
+/* ── Define list (GNSS / IMU in Section 3) ── */
+
+.lidar-define-list {
+  color: var(--ink);
+  font-size: 0.95rem;
+  margin: 14px 0 0;
+  padding-left: 1.2rem;
+}
+
+.lidar-define-list li + li {
+  margin-top: 10px;
+}
+
+/* ── Inline helper notes ── */
+
+.lidar-range-note {
+  background: var(--surface-alt);
+  border-left: 3px solid var(--accent);
+  border-radius: 0 6px 6px 0;
+  color: var(--ink) !important;
+  font-size: 0.88rem;
+  margin-top: 18px;
+  padding: 10px 12px;
+}
+
+.lidar-save-hint {
+  color: var(--muted);
+  font-size: 0.8rem;
+  margin: 8px 0 0;
+}
+
+/* ── Final task answer fields ── */
+
+.lidar-final-input {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: var(--ink);
+  display: block;
+  font: inherit;
+  font-size: 0.93rem;
+  margin-top: 10px;
+  min-height: 72px;
+  padding: 10px 12px;
+  resize: vertical;
+  width: 100%;
+}
+
+.lidar-final-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 20px;
 }
 
 /* ── Module flow ── */
@@ -600,9 +771,11 @@
   width: 100%;
 }
 
-.lidar-response textarea:focus {
+.lidar-response textarea:focus,
+.lidar-final-input:focus {
   border-color: var(--accent);
-  outline: 3px solid rgba(23, 99, 91, 0.12);
+  outline: 3px solid rgba(23, 99, 91, 0.35);
+  outline-offset: 1px;
 }
 
 /* ── Callout ── */
@@ -1126,7 +1299,8 @@
 
 .lidar-identity__input:focus-visible {
   border-color: rgba(255, 255, 255, 0.7);
-  outline: none;
+  outline: 3px solid #ffffff;
+  outline-offset: 2px;
 }
 
 .lidar-identity__hint {
@@ -1154,7 +1328,7 @@
 }
 
 .lidar-tab.is-locked::after {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%236b6b6b' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='11' width='18' height='11' rx='2'/%3E%3Cpath d='M7 11V7a5 5 0 0 1 10 0v4'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%23595959' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='11' width='18' height='11' rx='2'/%3E%3Cpath d='M7 11V7a5 5 0 0 1 10 0v4'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: center;
   background-size: contain;

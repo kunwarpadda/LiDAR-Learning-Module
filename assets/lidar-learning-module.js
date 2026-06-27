@@ -1,14 +1,5 @@
 (function () {
   const panelOrder = ['home', 'section-1', 'section-2', 'section-3', 'section-4', 'section-5', 'final'];
-  const panelLabels = {
-    home: 'Home',
-    'section-1': 'Section 1',
-    'section-2': 'Section 2',
-    'section-3': 'Section 3',
-    'section-4': 'Section 4',
-    'section-5': 'Section 5',
-    final: 'Final Task',
-  };
 
   // Sections that must be "attempted" before the next one unlocks, plus the
   // selectors that count as an attempt (any interaction is enough).
@@ -35,6 +26,40 @@
 
   const NAME_KEY = 'lidar-learning-name';
   const PROGRESS_KEY = 'lidar-learning-progress';
+  const CASE_KEY = 'lidar-learning-case';
+
+  // ── Final Assessment submission (Google Forms) ───────────────────────────
+  // Students type their answers in the module; clicking "Submit my answers"
+  // opens a Google Form PRE-FILLED with what they typed. They review and press
+  // Submit in the form, and the response lands in the Google Sheet you own.
+  //
+  // ONE-TIME SETUP:
+  //  1. Build a Google Form with one "Paragraph" question per item below, plus
+  //     a short-answer "Name" question. The wording can mirror the Final
+  //     Assessment prompts.
+  //  2. In the form's ⋮ menu choose "Get pre-filled link", type throwaway text
+  //     into every field, and click "Get link".
+  //  3. The link looks like:
+  //       https://docs.google.com/forms/d/e/FORM_ID/viewform?usp=pp_url
+  //         &entry.111111=foo&entry.222222=bar...
+  //     Paste FORM_ID into `formId`, and copy each `entry.NNN` id into the
+  //     matching slot below (match by the throwaway text you typed).
+  //  4. Set `enabled: true`. Until then the Submit button shows a friendly
+  //     "not set up yet" message and points students to Export / print.
+  const GOOGLE_FORM = {
+    enabled: false,
+    formId: 'PASTE_FORM_ID_HERE',
+    // Map each module answer key → the Google Form entry id (e.g. 'entry.123').
+    entries: {
+      name: 'entry.NAME_ID',
+      'final-1': 'entry.Q1_ID',
+      'final-2': 'entry.Q2_ID',
+      'final-3': 'entry.Q3_ID',
+      'final-4': 'entry.Q4_ID',
+      'final-5': 'entry.Q5_ID',
+      'final-6': 'entry.Q6_ID',
+    },
+  };
 
   function initAll() {
     document.querySelectorAll('[data-lidar-module]:not([data-lidar-ready])').forEach(initModule);
@@ -68,6 +93,8 @@
 
     // ── Progress / gating ───────────────────────────────────────────────
     const completed = loadCompleted();
+    // Every panel except Home counts toward completion.
+    const gatedPanels = panelOrder.slice(1);
 
     function highestCompletedIndex() {
       let highest = 0;
@@ -89,17 +116,69 @@
       completed.add(panelName);
       saveCompleted(completed);
       updateLocks();
+      refreshTabStates();
+      updateProgress();
     }
     function updateLocks() {
       const max = maxUnlockedIndex();
+      // Locked controls stay clickable on purpose: a click runs openPanel,
+      // which shows the "attempt this section first" toast. (Disabling them
+      // would swallow the click and leave a passive reader with no feedback.)
       const lock = (element, targetName) => {
         const locked = panelOrder.indexOf(targetName) > max;
         element.classList.toggle('is-locked', locked);
-        element.disabled = locked;
         element.setAttribute('aria-disabled', String(locked));
       };
       tabs.forEach((tab) => lock(tab, tab.dataset.panelTarget));
       module.querySelectorAll('[data-open-panel]').forEach((button) => lock(button, button.dataset.openPanel));
+    }
+    function refreshTabStates() {
+      tabs.forEach((tab) => {
+        tab.classList.toggle('is-complete', completed.has(tab.dataset.panelTarget));
+      });
+    }
+    function updateProgress() {
+      const done = gatedPanels.filter((name) => completed.has(name)).length;
+      const pct = Math.round((done / gatedPanels.length) * 100);
+      if (progressBar) {
+        progressBar.style.width = `${pct}%`;
+      }
+      if (progressLabel) {
+        progressLabel.textContent = done >= gatedPanels.length
+          ? `All ${gatedPanels.length} sections complete`
+          : `${done} of ${gatedPanels.length} sections complete`;
+      }
+    }
+    function clearAllProgress() {
+      try {
+        const keys = [];
+        for (let i = 0; i < window.localStorage.length; i += 1) {
+          const key = window.localStorage.key(i);
+          if (key && key.indexOf('lidar-learning') === 0) {
+            keys.push(key);
+          }
+        }
+        keys.forEach((key) => window.localStorage.removeItem(key));
+      } catch (error) {
+        /* ignore storage errors */
+      }
+      completed.clear();
+      module.querySelectorAll('[data-answer-key]').forEach((field) => {
+        field.value = '';
+      });
+      const nameInput = module.querySelector('[data-name-input]');
+      if (nameInput) {
+        nameInput.value = '';
+        nameInput.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+      module.querySelectorAll('[data-case-option].is-selected').forEach((button) => {
+        button.classList.remove('is-selected');
+      });
+      updateLocks();
+      refreshTabStates();
+      updateProgress();
+      openPanel('home', { force: true });
+      showToast('Progress and saved answers cleared.');
     }
 
     let toastTimer = null;
@@ -122,7 +201,7 @@
     function openPanel(panelName, options) {
       const opts = options || {};
       if (!opts.force && !isUnlocked(panelName)) {
-        showToast('Finish the current step to unlock the next one.');
+        showToast('Locked — try the current section first (answer a question or write a note) to unlock the next one.');
         return false;
       }
 
@@ -136,16 +215,12 @@
         const isActive = tab.dataset.panelTarget === panelName;
         tab.classList.toggle('is-active', isActive);
         tab.setAttribute('aria-selected', String(isActive));
+        tab.tabIndex = isActive ? 0 : -1;
       });
 
-      const panelIndex = Math.max(0, panelOrder.indexOf(panelName));
-      const progress = ((panelIndex + 1) / panelOrder.length) * 100;
-      if (progressBar) {
-        progressBar.style.width = `${progress}%`;
-      }
-      if (progressLabel) {
-        progressLabel.textContent = panelLabels[panelName] || panelName;
-      }
+      // The progress bar reflects how many sections are complete, not which
+      // panel is open, so it never moves backward when you revisit Home.
+      updateProgress();
 
       if (heroAnim) {
         if (panelName === 'home') {
@@ -166,6 +241,34 @@
     tabs.forEach((tab) => {
       tab.addEventListener('click', () => openPanel(tab.dataset.panelTarget));
     });
+
+    // Roving-tabindex keyboard support for the tablist (WAI-ARIA pattern):
+    // arrow keys move focus between tabs; Enter/Space activate via the native
+    // button click handler above.
+    const tablist = module.querySelector('[role="tablist"]');
+    if (tablist) {
+      tablist.addEventListener('keydown', (event) => {
+        const current = tabs.indexOf(document.activeElement);
+        if (current === -1) {
+          return;
+        }
+        let next = null;
+        if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
+          next = (current + 1) % tabs.length;
+        } else if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
+          next = (current - 1 + tabs.length) % tabs.length;
+        } else if (event.key === 'Home') {
+          next = 0;
+        } else if (event.key === 'End') {
+          next = tabs.length - 1;
+        }
+        if (next === null) {
+          return;
+        }
+        event.preventDefault();
+        tabs[next].focus();
+      });
+    }
 
     module.querySelectorAll('[data-open-panel]').forEach((button) => {
       button.addEventListener('click', () => openPanel(button.dataset.openPanel));
@@ -204,6 +307,27 @@
       });
     }
 
+    const resetButton = module.querySelector('[data-reset-progress]');
+    if (resetButton) {
+      resetButton.addEventListener('click', () => {
+        const ok = window.confirm('Reset your progress and clear saved answers on this device? This cannot be undone.');
+        if (ok) {
+          clearAllProgress();
+        }
+      });
+    }
+
+    const exportButton = module.querySelector('[data-export-answers]');
+    if (exportButton) {
+      exportButton.addEventListener('click', () => exportAnswers(module, identity.getName(), showToast));
+    }
+
+    const submitButton = module.querySelector('[data-submit-answers]');
+    if (submitButton) {
+      submitButton.addEventListener('click', () => submitAnswers(module, identity.getName(), showToast));
+    }
+
+    initResponses(module);
     initQuiz(module);
     initTimeOfFlight(module);
     initPointExperiment(module, registerRedraw);
@@ -219,6 +343,7 @@
     heroAnim = initHeroCanvas(module.querySelector('[data-lidar-hero-canvas]'));
 
     updateLocks();
+    refreshTabStates();
     openPanel('home', { force: true, scroll: false });
   }
 
@@ -376,11 +501,11 @@
       const feedback = quiz.querySelector('[data-feedback]');
       const input = quiz.querySelector('[data-response-input]');
       const saveButton = quiz.querySelector('[data-save-response]');
-      const storageKey = `lidar-learning-note-${quiz.dataset.checkin}`;
-
-      if (input) {
-        input.value = getStoredNote(storageKey);
-      }
+      // Loading/auto-saving the textarea is handled by initResponses; the Save
+      // button just writes immediately and confirms.
+      const storageKey = input && input.dataset.answerKey
+        ? `lidar-learning-note-${input.dataset.answerKey}`
+        : `lidar-learning-note-${quiz.dataset.checkin}`;
 
       quiz.querySelectorAll('[data-choice]').forEach((button) => {
         button.addEventListener('click', () => {
@@ -407,6 +532,197 @@
         });
       }
     });
+  }
+
+  // Load + auto-save every written response (including the Section 3 prediction,
+  // the Section 5 case study, and the Final Task fields that previously had no
+  // way to persist) so nothing is lost on refresh.
+  function initResponses(module) {
+    module.querySelectorAll('[data-answer-key]').forEach((field) => {
+      const key = `lidar-learning-note-${field.dataset.answerKey}`;
+      const stored = getStoredNote(key);
+      if (stored) {
+        field.value = stored;
+      }
+      field.addEventListener('input', () => saveStoredNote(key, field.value));
+    });
+  }
+
+  // Build a Google Forms "pre-filled" URL from the learner's name + the Final
+  // Assessment answers, so the form opens with everything already typed in.
+  function buildPrefillUrl(scope, name) {
+    const base = `https://docs.google.com/forms/d/e/${GOOGLE_FORM.formId}/viewform`;
+    const params = new URLSearchParams({ usp: 'pp_url' });
+    const nameEntry = GOOGLE_FORM.entries.name;
+    if (nameEntry && name) {
+      params.set(nameEntry, name);
+    }
+    scope.querySelectorAll('[data-answer-key]').forEach((field) => {
+      const entryId = GOOGLE_FORM.entries[field.dataset.answerKey];
+      const value = field.value.trim();
+      if (entryId && value) {
+        params.set(entryId, value);
+      }
+    });
+    return `${base}?${params.toString()}`;
+  }
+
+  function submitAnswers(module, name, notify) {
+    const finalPanel = module.querySelector('[data-panel="final"]');
+    const fields = finalPanel
+      ? Array.from(finalPanel.querySelectorAll('[data-answer-key]'))
+      : [];
+    const answered = fields.filter((field) => field.value.trim()).length;
+
+    if (!GOOGLE_FORM.enabled || GOOGLE_FORM.formId === 'PASTE_FORM_ID_HERE') {
+      notify('Submission isn’t set up yet — for now use “Export / print my answers” to hand in your work.');
+      return;
+    }
+    if (answered === 0) {
+      notify('Write at least one answer before submitting.');
+      return;
+    }
+    if (answered < fields.length) {
+      const ok = window.confirm(
+        `You've answered ${answered} of ${fields.length} questions. Submit anyway? You can still finish the rest in the form before sending.`
+      );
+      if (!ok) {
+        return;
+      }
+    }
+
+    const url = buildPrefillUrl(finalPanel, name);
+    const win = window.open(url, '_blank', 'noopener');
+    if (win) {
+      notify('Opened the submission form pre-filled with your answers — review and press Submit there.');
+    } else {
+      notify('Pop-up blocked — allow pop-ups, then click “Submit my answers” again.');
+    }
+  }
+
+  function exportAnswers(module, name, notify) {
+    const learner = (name || '').trim();
+    const date = new Date().toLocaleDateString();
+
+    const answers = Array.from(module.querySelectorAll('[data-answer-key]')).map((field) => ({
+      label: field.dataset.answerLabel || field.dataset.answerKey,
+      value: field.value.trim(),
+    }));
+
+    const checkins = Array.from(module.querySelectorAll('[data-checkin]')).map((quiz) => {
+      const question = quiz.querySelector('p');
+      const chosen = quiz.querySelector('[data-choice].is-correct, [data-choice].is-incorrect');
+      if (!chosen) {
+        return null;
+      }
+      return {
+        question: question ? question.textContent.trim() : '',
+        answer: chosen.textContent.trim(),
+        correct: chosen.classList.contains('is-correct'),
+      };
+    }).filter(Boolean);
+
+    const selectedCase = module.querySelector('[data-case-option].is-selected');
+    const html = buildAnswerSheet({
+      learner,
+      date,
+      answers,
+      checkins,
+      caseFocus: selectedCase ? selectedCase.dataset.caseOption : '',
+    });
+
+    const win = window.open('', '_blank');
+    if (win && win.document) {
+      win.document.open();
+      win.document.write(html);
+      win.document.close();
+      return;
+    }
+    // Pop-up blocked → download the same sheet as an HTML file instead.
+    downloadHtml(html, 'lidar-module-answers.html');
+    if (typeof notify === 'function') {
+      notify('Pop-up blocked — your answer sheet was downloaded instead.');
+    }
+  }
+
+  function buildAnswerSheet(data) {
+    const esc = (value) => String(value == null ? '' : value)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+    const multiline = (value) => esc(value).replace(/\n/g, '<br>');
+
+    const metaBits = [];
+    if (data.learner) {
+      metaBits.push(`Name: <strong>${esc(data.learner)}</strong>`);
+    }
+    metaBits.push(`Date: ${esc(data.date)}`);
+    if (data.caseFocus) {
+      metaBits.push(`Case study focus: ${esc(data.caseFocus)}`);
+    }
+
+    const checkinHtml = data.checkins.length
+      ? `<h2>Check-in answers</h2>${data.checkins.map((item) => `
+        <div class="qa">
+          <p class="q">${esc(item.question)}</p>
+          <p class="a">Selected: ${esc(item.answer)} <span class="tag ${item.correct ? 'ok' : 'redo'}">${item.correct ? 'correct' : 'reconsider'}</span></p>
+        </div>`).join('')}`
+      : '';
+
+    const writtenHtml = data.answers.map((answer) => `
+        <div class="qa">
+          <p class="q">${esc(answer.label)}</p>
+          <p class="a">${answer.value ? multiline(answer.value) : '<em>(not answered yet)</em>'}</p>
+        </div>`).join('');
+
+    return `<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>How LiDAR Measures the World — My Answers</title>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #111; line-height: 1.55; margin: 0; padding: 32px; max-width: 760px; }
+  h1 { font-size: 1.5rem; margin: 0 0 4px; }
+  h2 { font-size: 1.05rem; margin: 28px 0 8px; border-bottom: 2px solid #17635b; padding-bottom: 4px; color: #0c3f3a; }
+  .meta { color: #444; font-size: 0.9rem; margin: 0 0 8px; }
+  .qa { margin: 0 0 14px; }
+  .q { font-weight: 600; margin: 0 0 2px; }
+  .a { margin: 0; }
+  .tag { font-size: 0.72rem; font-weight: 700; padding: 1px 7px; border-radius: 999px; }
+  .tag.ok { background: #e6f4ec; color: #1e4d30; }
+  .tag.redo { background: #fdeaea; color: #6b1f1f; }
+  .toolbar { margin: 0 0 20px; }
+  .toolbar button { font: inherit; cursor: pointer; border: 1px solid #17635b; background: #17635b; color: #fff; border-radius: 6px; padding: 8px 14px; }
+  .foot { color: #777; font-size: 0.8rem; margin-top: 28px; }
+  @media print { .toolbar { display: none; } body { padding: 0; } }
+</style>
+</head>
+<body>
+  <div class="toolbar"><button type="button" onclick="window.print()">Print / Save as PDF</button></div>
+  <h1>How LiDAR Measures the World — My Answers</h1>
+  <p class="meta">${metaBits.join(' · ')}</p>
+  ${checkinHtml}
+  <h2>Written responses</h2>
+  ${writtenHtml}
+  <p class="foot">Generated from the interactive LiDAR learning module.</p>
+</body>
+</html>`;
+  }
+
+  function downloadHtml(html, filename) {
+    try {
+      const blob = new Blob([html], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch (error) {
+      /* ignore download errors */
+    }
   }
 
   function initTimeOfFlight(module) {
@@ -468,6 +784,8 @@
         const summary = describePointCloud(settings);
         if (qualityLabel) qualityLabel.textContent = summary.quality;
         if (description) description.textContent = summary.description;
+        // Keep the canvas's accessible name in sync with the generated result.
+        if (canvas) canvas.setAttribute('aria-label', `Generated point cloud — ${summary.description}`);
       }
 
       updateLabels();
@@ -536,9 +854,12 @@
         if (totalError) totalError.textContent = `${formatMeters(total)} m`;
         if (imuShift) imuShift.textContent = `${formatMeters(imuShiftValue)} m`;
         if (largestError) largestError.textContent = `${contributors[0][0]} contributes most`;
+        const summaryText = `The measured point is shifted about ${formatMeters(total)} m from the target. ${contributors[0][0]} is the largest contributor in this setup.`;
         if (description) {
-          description.textContent = `The measured point is shifted about ${formatMeters(total)} m from the target. ${contributors[0][0]} is the largest contributor in this setup.`;
+          description.textContent = summaryText;
         }
+        // Keep the canvas's accessible name in sync with the current shift.
+        if (canvas) canvas.setAttribute('aria-label', `Error propagation display — ${summaryText}`);
         drawErrorPropagation(canvas, { gpsValue, imuShiftValue, laserValue, total });
       }
 
@@ -559,18 +880,32 @@
       'Infrastructure inspection': 'Decision prompt: Which bridge, road, or powerline features need maintenance, and how could missed points hide a problem?',
     };
 
+    function select(button, persist) {
+      const container = button.closest('.lidar-card');
+      const description = container ? container.querySelector('[data-case-description]') : null;
+      if (description) {
+        description.textContent = descriptions[button.dataset.caseOption] || 'Explain how accurate 3D data supports this decision.';
+      }
+      if (container) {
+        container.querySelectorAll('[data-case-option]').forEach((option) => option.classList.toggle('is-selected', option === button));
+      }
+      if (persist) {
+        saveStoredNote(CASE_KEY, button.dataset.caseOption);
+      }
+    }
+
     module.querySelectorAll('[data-case-option]').forEach((button) => {
-      button.addEventListener('click', () => {
-        const container = button.closest('.lidar-card');
-        const description = container ? container.querySelector('[data-case-description]') : null;
-        if (description) {
-          description.textContent = descriptions[button.dataset.caseOption] || 'Explain how accurate 3D data supports this decision.';
-        }
-        if (container) {
-          container.querySelectorAll('[data-case-option]').forEach((option) => option.classList.toggle('is-selected', option === button));
-        }
-      });
+      button.addEventListener('click', () => select(button, true));
     });
+
+    // Restore a previously chosen case so the selection + prompt survive refresh.
+    const storedCase = getStoredNote(CASE_KEY);
+    if (storedCase) {
+      const match = module.querySelector(`[data-case-option="${storedCase}"]`);
+      if (match) {
+        select(match, false);
+      }
+    }
   }
 
   function drawExperimentPlaceholder(canvas, message) {
@@ -581,7 +916,7 @@
     context.fillRect(0, 0, canvas.width, canvas.height);
     context.strokeStyle = '#e4e4e4';
     context.strokeRect(18, 18, canvas.width - 36, canvas.height - 36);
-    context.fillStyle = '#6b6b6b';
+    context.fillStyle = '#595959';
     context.font = '600 20px system-ui, sans-serif';
     context.textAlign = 'center';
     context.fillText(message, canvas.width / 2, canvas.height / 2);
