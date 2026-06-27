@@ -345,6 +345,38 @@
     updateLocks();
     refreshTabStates();
     openPanel('home', { force: true, scroll: false });
+    initHeightReporter(module);
+  }
+
+  // When embedded in an iframe (e.g. WordPress), report the module's height to
+  // the parent so it can size the iframe to fit — no inner scrollbar, so the
+  // page shows a single scrollbar instead of two. Reports the module element's
+  // own height (not the 100vh shell) so it can shrink for shorter panels.
+  function initHeightReporter(module) {
+    if (window.parent === window) {
+      return; // not embedded — nothing to report to
+    }
+    let last = 0;
+    let timer = 0;
+    const send = () => {
+      timer = 0;
+      const height = Math.ceil(module.getBoundingClientRect().height);
+      if (height && Math.abs(height - last) > 1) {
+        last = height;
+        window.parent.postMessage({ type: 'lidar-module-height', height }, '*');
+      }
+    };
+    const schedule = () => {
+      if (!timer) {
+        timer = window.setTimeout(send, 50);
+      }
+    };
+    send(); // immediate first report (don't wait on a frame/timer)
+    window.addEventListener('load', schedule);
+    window.addEventListener('resize', schedule);
+    if (typeof ResizeObserver !== 'undefined') {
+      new ResizeObserver(schedule).observe(module);
+    }
   }
 
   function initIdentity(module) {
