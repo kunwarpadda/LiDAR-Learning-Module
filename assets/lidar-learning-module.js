@@ -47,17 +47,17 @@
   //  4. Set `enabled: true`. Until then the Submit button shows a friendly
   //     "not set up yet" message and points students to Export / print.
   const GOOGLE_FORM = {
-    enabled: false,
-    formId: 'PASTE_FORM_ID_HERE',
+    enabled: true,
+    formId: '1FAIpQLSdiWHpLyF7NO-OU7_z11NyHHgDdqujh2vgI6WH3Ak0eKa4DGA',
     // Map each module answer key → the Google Form entry id (e.g. 'entry.123').
     entries: {
-      name: 'entry.NAME_ID',
-      'final-1': 'entry.Q1_ID',
-      'final-2': 'entry.Q2_ID',
-      'final-3': 'entry.Q3_ID',
-      'final-4': 'entry.Q4_ID',
-      'final-5': 'entry.Q5_ID',
-      'final-6': 'entry.Q6_ID',
+      name: 'entry.1383868954',
+      'final-1': 'entry.1919228247',
+      'final-2': 'entry.266725739',
+      'final-3': 'entry.890382185',
+      'final-4': 'entry.239506645',
+      'final-5': 'entry.1345535939',
+      'final-6': 'entry.601707971',
     },
   };
 
